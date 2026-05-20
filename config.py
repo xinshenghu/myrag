@@ -1,11 +1,18 @@
 """RAG 项目配置"""
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
+# 加载本地 .env 文件（Streamlit Cloud 通过 Secrets 设置环境变量，优先级更高）
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 # API 配置 — OpenAI 兼容接口
-AGI_API_KEY = "sk-tZRtICqTySOZXZ4KCUEYg3pvJ9VtHoaTgDJ5iJRwhBN9wF2f"
-AGI_BASE_URL = "https://api.agicto.cn/v1"
+AGI_API_KEY = os.environ.get("AGI_API_KEY", "")
+AGI_BASE_URL = os.environ.get("AGI_BASE_URL", "https://api.agicto.cn/v1")
 
 # 向量模型
 EMBEDDING_MODEL = "text-embedding-v3"
@@ -14,8 +21,8 @@ EMBEDDING_MODEL = "text-embedding-v3"
 LLM_MODEL = "qwen-turbo"
 
 # Chunk 配置
-CHUNK_SIZE = 500          # 每个 chunk 的字符数
-CHUNK_OVERLAP = 50        # chunk 之间的重叠字符数
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 50
 
 # FAISS 存储路径
 FAISS_INDEX_PATH = "./data/faiss_index"
