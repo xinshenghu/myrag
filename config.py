@@ -3,16 +3,38 @@
 import os
 from dataclasses import dataclass
 
-# 加载本地 .env 文件（Streamlit Cloud 通过 Secrets 设置环境变量，优先级更高）
+# 加载本地 .env 文件（Streamlit Cloud 通过 Secrets 设置）
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
     pass
 
-# API 配置 — OpenAI 兼容接口
-AGI_API_KEY = os.environ.get("AGI_API_KEY", "")
-AGI_BASE_URL = os.environ.get("AGI_BASE_URL", "https://api.agicto.cn/v1")
+# API 配置 — 兼容本地 .env 和 Streamlit Cloud Secrets
+def _get_api_key():
+    # 优先环境变量
+    val = os.environ.get("AGI_API_KEY")
+    if val:
+        return val
+    # 尝试 Streamlit Cloud Secrets
+    try:
+        import streamlit as st
+        return st.secrets.get("AGI_API_KEY", "")
+    except Exception:
+        return ""
+
+def _get_base_url():
+    val = os.environ.get("AGI_BASE_URL")
+    if val:
+        return val
+    try:
+        import streamlit as st
+        return st.secrets.get("AGI_BASE_URL", "https://api.agicto.cn/v1")
+    except Exception:
+        return "https://api.agicto.cn/v1"
+
+AGI_API_KEY = _get_api_key()
+AGI_BASE_URL = _get_base_url()
 
 # 向量模型
 EMBEDDING_MODEL = "text-embedding-v3"
