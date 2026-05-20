@@ -44,11 +44,22 @@ def index_exists():
     return os.path.exists(FAISS_INDEX_PATH)
 
 
-def load_existing_index():
-    """加载已有索引，返回 (vectors, chunks_meta) 或 (None, None)"""
-    if not index_exists():
+def load_existing_chunks():
+    """加载已有 chunk 元数据，返回 (vectors, chunks_meta) 或 (None, None)"""
+    import json
+    chunks_json = os.path.join(os.path.dirname(__file__), "data", "chunks.json")
+    if not os.path.exists(chunks_json):
         return None, None
-    return load_vectorstore()
+
+    with open(chunks_json, "r", encoding="utf-8") as fh:
+        data = json.load(fh)
+
+    chunks = data["chunks"]
+    index, _ = load_vectorstore()
+
+    # 从 FAISS index 中提取所有向量
+    vectors = index.reconstruct_n(0, index.ntotal).tolist()
+    return vectors, chunks
 
 
 def save_combined_index(existing_vectors, existing_chunks, new_vectors, new_chunks):
@@ -60,7 +71,6 @@ def save_combined_index(existing_vectors, existing_chunks, new_vectors, new_chun
         all_vectors = existing_vectors + new_vectors
         all_chunks = existing_chunks + new_chunks
     save_vectorstore(all_vectors, all_chunks)
-    return all_vectors, all_chunks
 
 
 def index_single_file(pdf_path):
@@ -74,8 +84,8 @@ def index_single_file(pdf_path):
     new_vectors = embed_texts(chunk_texts)
 
     # 合并到现有索引
-    existing_vectors, existing_chunks = load_existing_index()
-    _, _ = save_combined_index(existing_vectors, existing_chunks, new_vectors, chunks)
+    existing_vectors, existing_chunks = load_existing_chunks()
+    save_combined_index(existing_vectors, existing_chunks, new_vectors, chunks)
 
     # 更新已索引列表
     indexed = get_indexed_files()
@@ -93,7 +103,7 @@ def index_new_files(pdf_folder):
     if not new_files:
         return False, 0
 
-    existing_vectors, existing_chunks = load_existing_index()
+    existing_vectors, existing_chunks = load_existing_chunks()
 
     for pdf_path in new_files:
         pages = extract_text_with_pages(pdf_path)
@@ -102,9 +112,14 @@ def index_new_files(pdf_folder):
         chunks = chunk_with_pages(all_pages)
         chunk_texts = [t for t, _, _ in chunks]
         vectors = embed_texts(chunk_texts)
-        existing_vectors, existing_chunks = save_combined_index(
-            existing_vectors, existing_chunks, vectors, chunks
-        )
+        save_combined_index(existing_vectors, existing_chunks, vectors, chunks)
+        # 更新引用以追加
+        if existing_vectors is None:
+            existing_vectors = vectors
+            existing_chunks = chunks
+        else:
+            existing_vectors = existing_vectors + vectors
+            existing_chunks = existing_chunks + chunks
 
     existing_files.update(os.path.basename(f) for f in new_files)
     save_indexed_files(existing_files)
@@ -176,7 +191,7 @@ for fp in pdf_list:
     status = "已索引" if name in indexed else "未索引"
     st.sidebar.text(f"[{status}] {name}")
 
-# 单文件索引按钮
+# 单文件索引
 st.sidebar.divider()
 st.sidebar.subheader("单文件索引")
 pdf_options = {os.path.basename(fp): fp for fp in pdf_list}
