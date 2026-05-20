@@ -2,7 +2,7 @@
 
 一个基于 RAG 技术的文档智能问答系统。上传 PDF 文档，即可与文档内容对话，回答自带页码和文件名来源标注。
 
-在线体验：https://xinshenghu-myrag.streamlit.app
+在线体验：https://khj8jeamo2mukqtaycqken.streamlit.app
 
 ## 架构
 
@@ -91,10 +91,6 @@ streamlit run app.py
 python build_index.py ./pdf
 python chat.py
 ```
-
-### 配置
-
-API key 和 base URL 在 `config.py` 中硬编码。目前使用 OpenAI 兼容接口，支持 DashScope、AGICTO 等后端。
 
 ## 技术栈
 
