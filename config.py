@@ -4,8 +4,8 @@ import os
 from dataclasses import dataclass, field
 
 # API 配置 — OpenAI 兼容接口
-AGI_API_KEY = os.environ.get("AGI_API_KEY", "your-api-key-here")
-AGI_BASE_URL = os.environ.get("AGI_BASE_URL", "https://api.agicto.cn/v1")
+AGI_API_KEY = "sk-tZRtICqTySOZXZ4KCUEYg3pvJ9VtHoaTgDJ5iJRwhBN9wF2f"
+AGI_BASE_URL = "https://api.agicto.cn/v1"
 
 # 向量模型
 EMBEDDING_MODEL = "text-embedding-v3"
