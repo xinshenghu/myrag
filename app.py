@@ -14,6 +14,7 @@ from embedder import embed_texts, embed_text
 from vectorstore import save_vectorstore, load_vectorstore
 from retriever import search
 from llm import build_context, answer
+from config import get_api_key, get_base_url
 
 
 # === 配置 ===
