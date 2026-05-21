@@ -186,6 +186,19 @@ if "pending_delete" not in st.session_state:
 # === 侧边栏 ===
 st.sidebar.title("RAG 文档问答")
 
+# 诊断信息（可移除）
+with st.sidebar.expander("系统状态", expanded=False):
+    key = get_api_key()
+    if key:
+        st.success(f"API Key: 已加载 ({key[:8]}...{key[-4:]})")
+    else:
+        st.error("API Key: 未加载！请在 Settings -> Secrets 中配置")
+    st.text(f"Base URL: {get_base_url()}")
+    import glob
+    pdf_count = len(glob.glob(os.path.join(UPLOAD_DIR, "*.pdf")))
+    st.text(f"PDF 文件: {pdf_count}")
+    st.text(f"索引存在: {index_exists()}")
+
 # 上传
 st.sidebar.subheader("上传 PDF")
 uploaded = st.sidebar.file_uploader("选择 PDF 文件", type=["pdf"], accept_multiple_files=True)
