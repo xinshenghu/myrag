@@ -56,9 +56,11 @@ def check_index_format():
     chunks = data.get("chunks", [])
     if not chunks:
         return True
-    # 检查 filename 和 page 字段是否都存在且非空
-    c = chunks[0]
-    return "filename" in c and "page" in c and c.get("page", 0) > 0
+    try:
+        c = chunks[0]
+        return bool(c.get("filename") and c.get("page", 0) > 0)
+    except Exception:
+        return False
 
 
 def load_existing_chunks():
