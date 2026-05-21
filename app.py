@@ -44,6 +44,21 @@ def index_exists():
     return os.path.exists(FAISS_INDEX_PATH)
 
 
+def check_index_format():
+    """检查索引格式是否为新版（包含 filename 字段）"""
+    import json
+    chunks_json = os.path.join(os.path.dirname(__file__), "data", "chunks.json")
+    if not os.path.exists(chunks_json):
+        return True  # 没有索引不算旧格式
+    with open(chunks_json, "r", encoding="utf-8") as fh:
+        data = json.load(fh)
+    chunks = data.get("chunks", [])
+    if not chunks:
+        return True
+    # 只要第一个 chunk 有 filename 字段就认为是新格式
+    return "filename" in chunks[0]
+
+
 def load_existing_chunks():
     """加载已有 chunk 元数据，返回 (vectors, chunks_meta) 或 (None, None)"""
     import json
@@ -261,6 +276,16 @@ st.title("文档智能问答")
 
 if not index_exists():
     st.info("还没有索引。请先在左侧上传 PDF，然后选择文件点击「索引此文件」或「增量索引全部」。")
+elif not check_index_format():
+    st.warning("⚠️ 索引格式过期，正在自动重建...")
+    ok, count = rebuild_index_from_folder(UPLOAD_DIR)
+    if ok and count > 0:
+        st.success(f"已自动重建 {count} 个文件的索引，请刷新页面。")
+        st.stop()
+    elif ok and count == 0:
+        st.info("没有找到 PDF 文件。请先上传 PDF 后再重建索引。")
+    else:
+        st.error("自动重建失败，请尝试手动操作。")
 else:
     # PDF 预览
     if selected_pdf and selected_pdf != "-- 请选择 --":

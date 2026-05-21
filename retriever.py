@@ -29,7 +29,7 @@ def search(query_embedding: list[float], top_k: int = 3) -> list[SearchResult]:
         score = 1.0 / (1.0 + dist)
         results.append(SearchResult(
             text=meta["text"],
-            page=meta["page"],
+            page=meta.get("page", 0),
             filename=meta.get("filename", ""),
             score=score,
         ))
