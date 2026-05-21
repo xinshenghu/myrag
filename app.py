@@ -56,8 +56,9 @@ def check_index_format():
     chunks = data.get("chunks", [])
     if not chunks:
         return True
-    # 只要第一个 chunk 有 filename 字段就认为是新格式
-    return "filename" in chunks[0]
+    # 检查 filename 和 page 字段是否都存在且非空
+    c = chunks[0]
+    return "filename" in c and "page" in c and c.get("page", 0) > 0
 
 
 def load_existing_chunks():
@@ -144,12 +145,17 @@ def index_new_files(pdf_folder):
 
 def rebuild_index_from_folder(pdf_folder):
     """全量重建：删除旧索引，重新索引所有 PDF"""
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
+    chunks_json = os.path.join(data_dir, "chunks.json")
+
+    # 先删除旧索引文件
+    for f in [FAISS_INDEX_PATH, chunks_json, INDEX_FILE]:
+        if os.path.exists(f):
+            os.remove(f)
+
     pdf_files = sorted(glob.glob(os.path.join(pdf_folder, "*.pdf")))
     if not pdf_files:
         save_indexed_files(set())
-        for f in [FAISS_INDEX_PATH, os.path.join(os.path.dirname(__file__), "data", "chunks.json")]:
-            if os.path.exists(f):
-                os.remove(f)
         return True, 0
 
     all_pages = []
