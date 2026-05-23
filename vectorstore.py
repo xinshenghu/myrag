@@ -15,7 +15,9 @@ def save_vectorstore(vectors: list[list[float]], chunks_with_meta: list[tuple[st
         vectors: N 个向量 (list of list of float)
         chunks_with_meta: [(chunk_text, page_number, filename), ...]
     """
-    os.makedirs(os.path.dirname(FAISS_INDEX_PATH) or ".", exist_ok=True)
+    index_dir = os.path.dirname(FAISS_INDEX_PATH)
+    if index_dir:
+        os.makedirs(index_dir, exist_ok=True)
 
     # 构建 FAISS 索引 (L2 距离)
     arr = np.array(vectors, dtype=np.float32)

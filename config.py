@@ -84,8 +84,10 @@ EMBEDDING_MODEL = "text-embedding-v3"
 LLM_MODEL = "qwen-turbo"
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
-FAISS_INDEX_PATH = "./data/faiss_index"
-CHUNKS_JSON_PATH = "./data/chunks.json"
+NOTE_DIR = r"C:\13683246141@163.com_2026-05-14-12-18"
+INDEX_DIR = os.path.join(NOTE_DIR, ".rag_index")
+FAISS_INDEX_PATH = os.path.join(INDEX_DIR, "faiss_index")
+CHUNKS_JSON_PATH = os.path.join(INDEX_DIR, "chunks.json")
 
 
 @dataclass

@@ -13,15 +13,21 @@ from vectorstore import save_vectorstore
 
 
 def build_index_from_folder(pdf_folder: str):
-    """从一个文件夹中读取所有 PDF，构建统一向量索引。"""
-    pdf_files = sorted(glob.glob(os.path.join(pdf_folder, "*.pdf")))
+    """从一个文件夹中递归读取所有 PDF，构建统一向量索引。"""
+    pdf_files = []
+    for root, dirs, files in os.walk(pdf_folder):
+        for f in files:
+            if f.endswith('.pdf'):
+                pdf_files.append(os.path.join(root, f))
+    pdf_files = sorted(pdf_files)
+
     if not pdf_files:
         print(f"[ERROR] 在 {pdf_folder} 中没有找到 PDF 文件")
         sys.exit(1)
 
     print(f"[1] 找到 {len(pdf_files)} 个 PDF 文件:")
     for f in pdf_files:
-        print(f"    - {os.path.basename(f)}")
+        print(f"    - {f}")
 
     # 提取所有 PDF 的文本
     all_pages = []
@@ -55,13 +61,20 @@ def build_index_from_folder(pdf_folder: str):
     # 保存
     print("\n[4] 正在保存向量数据库...")
     save_vectorstore(vectors, chunks)
+
+    # 保存已索引文件列表
+    index_dir = os.path.dirname(FAISS_INDEX_PATH) or "."
+    with open(os.path.join(index_dir, 'indexed_files.txt'), 'w', encoding='utf-8') as f:
+        for p in pdf_files:
+            f.write(os.path.basename(p) + '\n')
+
     print("\n[OK] 索引构建完成！\n")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("用法: python build_index.py <pdf文件夹路径>")
-        print("示例: python build_index.py ./pdf")
+        print("示例: python build_index.py C:\\136pdf")
         sys.exit(1)
 
     target = sys.argv[1]
